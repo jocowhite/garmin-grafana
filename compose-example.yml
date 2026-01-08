@@ -38,6 +38,22 @@ services:
       # - INFLUXDB_ENDPOINT_IS_HTTP=True # Set this to False if you are using HTTPS for your influxdb connection (over the internet)
       # - FORCE_REPROCESS_ACTIVITIES=True # Enables re-processing of FIT files on iterative updates when set to True (default), setting to False may save processing time but known for skipping activities
 
+  garmin-auth-ui:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: garmin-auth-ui
+    # user: root # Run as root if you have permission issues. If using root, also update the volume path below.
+    command: ["uv", "run", "streamlit", "run", "streamlit_app/app.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+    volumes:
+      - ./garminconnect-tokens:/home/appuser/.garminconnect # Shared token directory with garmin-fetch-data
+    ports:
+      - '8501:8501'
+    environment:
+      - TOKEN_DIR=/home/appuser/.garminconnect
+      - GARMINCONNECT_IS_CN=False # Set this to True if using Garmin-cn
+
   influxdb:
     restart: unless-stopped
     container_name: influxdb
